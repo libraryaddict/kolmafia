@@ -264,7 +264,6 @@ public class ChatBuffer
 		if ( this.content.length() < ChatBuffer.MAXIMUM_LENGTH )
 		{
 			SwingUtilities.invokeLater( new AppendHandler( newContents ) );
-			SwingUtilities.invokeLater( new ScrollHandler() );
 			return;
 		}
 
@@ -284,7 +283,6 @@ public class ChatBuffer
 		this.content.delete( 0, lineIndex );
 
 		SwingUtilities.invokeLater( new ResetHandler( this.getHTMLContent() ) );
-		SwingUtilities.invokeLater( new ScrollHandler() );
 	}
 
 	/**
@@ -374,6 +372,9 @@ public class ChatBuffer
 
 				displayPane.setText( this.htmlContent );
 			}
+
+			// Invoke the scroll after rendering has been done
+			SwingUtilities.invokeLater( new ScrollHandler() );
 		}
 	}
 
@@ -510,6 +511,9 @@ public class ChatBuffer
 
 				// ChatBuffer.printHTML( currentHTML );
 			}
+
+			// Invoke the scroll after rendering has been done
+			SwingUtilities.invokeLater( new ScrollHandler() );
 		}
 	}
 
