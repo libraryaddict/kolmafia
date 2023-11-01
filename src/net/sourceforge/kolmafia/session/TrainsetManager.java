@@ -170,17 +170,9 @@ public class TrainsetManager {
 
       // If we can configure the train
       if (!laps.find()) {
-        // If the trainset has been configured this turn
-        if (lastPosition == lastConfiguration) {
-          return;
-        }
-
-        // If we expected train to be unconfigurable
-        if (lastPosition < expectedTurnConfigurable) {
-          // Set the last configuration to a value 40 turns behind
-          Preferences.setInteger(
-              "lastTrainsetConfiguration", lastPosition - TURNS_BETWEEN_CONFIGURE);
-        }
+        // Due to the way kol handles trainset configuration, we can't be sure if it is meant to be
+        // configurable
+        // or not without storing more information than this is worth. So we'll trust the prefs.
       } else {
         // If we cannot reconfigure the train, we will be assuming worse case scenario of full laps
 

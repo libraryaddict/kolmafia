@@ -15,6 +15,7 @@ import net.sourceforge.kolmafia.objectpool.ItemPool;
 import net.sourceforge.kolmafia.preferences.Preferences;
 import net.sourceforge.kolmafia.request.FightRequest;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -153,6 +154,7 @@ public class TrainsetManagerTest {
   }
 
   @Test
+  @Disabled("Trainset remains configurable after a free fight + normal fight")
   public void canHandleUnexpectedConfigurationCooldownMissing() {
     // Test when we're allowed to configure the trainset, but we expected otherwise
     var cleanups =
@@ -223,6 +225,24 @@ public class TrainsetManagerTest {
             withProperty("lastTrainsetConfiguration", 0),
             withProperty("trainsetPosition", 0),
             withChoice(1485, html("request/test_trainset_detects_configuration.html")));
+
+    try (cleanups) {
+      assertThat("lastTrainsetConfiguration", isSetTo(0));
+    }
+  }
+
+  @Test
+  public void canHandleTrainsetReconfiguredThenActivatedOnFreeFight() {
+    // This handles a bug where we thought trainset should be unconfigurable after it moves position
+    var cleanups =
+        new Cleanups(
+            withProperty("lastTrainsetConfiguration", 0),
+            withProperty("trainsetPosition", 2),
+            withProperty(
+                "trainsetConfiguration",
+                "coal_hopper,meat_mine,tower_fizzy,logging_mill,ore_hopper,tower_frozen,spooky_graveyard,grain_silo"),
+            withWorkshedItem(ItemPool.MODEL_TRAIN_SET),
+            withChoice(1485, html("request/test_trainset_handles_configurable.html")));
 
     try (cleanups) {
       assertThat("lastTrainsetConfiguration", isSetTo(0));
