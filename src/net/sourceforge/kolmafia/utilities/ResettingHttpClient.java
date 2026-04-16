@@ -20,24 +20,42 @@ public class ResettingHttpClient {
   private static final int HTTP_CLIENT_REQUEST_LIMIT = 7000;
 
   private final Supplier<HttpClient> createClient;
-  private HttpClient client;
+  private volatile HttpClient client;
 
   public ResettingHttpClient(Supplier<HttpClient> createClient) {
     this.createClient = createClient;
     this.client = createClient.get();
   }
 
-  public void resetClient() {
-    client.close();
-
+  public synchronized void resetClient() {
+    HttpClient oldClient = this.client;
     this.client = createClient.get();
     clientRequestsSent.set(0);
+
+    // Delayed close to prevent other threads accessing a closed client
+    Thread cleanupThread =
+        new Thread(
+            () -> {
+              try {
+                Thread.sleep(5000);
+              } catch (InterruptedException ignored) {
+              }
+              oldClient.close();
+            });
+    cleanupThread.setDaemon(true);
+    cleanupThread.start();
   }
 
   public <T> HttpResponse<T> send(HttpRequest req, HttpResponse.BodyHandler<T> handler)
       throws IOException, InterruptedException {
     if (clientRequestsSent.incrementAndGet() >= HTTP_CLIENT_REQUEST_LIMIT) {
-      resetClient();
+      // Although cheap, no point in synchronizing when not needed
+      synchronized (this) {
+        // Ensure reset is still desired after lock is acquired
+        if (clientRequestsSent.get() >= HTTP_CLIENT_REQUEST_LIMIT) {
+          resetClient();
+        }
+      }
     }
 
     return this.client.send(req, handler);
