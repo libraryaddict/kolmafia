@@ -110,12 +110,7 @@ public class StorageRequest extends TransferItemRequest {
   }
 
   public static void refresh() {
-    // To refresh storage, we get Meat and pulls from the main page
-    // and items from api.php
-
-    RequestThread.postRequest(new StorageRequest(StorageRequestType.REFRESH));
-    ApiRequest.updateStorage();
-    StorageRequest.updateSettings();
+    ApiRequest.refresh("storage");
   }
 
   public static void emptyStorage() {
@@ -628,8 +623,7 @@ public class StorageRequest extends TransferItemRequest {
     // you what went into inventory and what went
     // into the closet.
 
-    InventoryManager.refresh();
-    ClosetRequest.refresh();
+    ApiRequest.refresh("inventory", "closet");
     NamedListenerRegistry.fireChange("(coinmaster)");
 
     // If we are still in a Trendy run or are pulling only
@@ -645,7 +639,7 @@ public class StorageRequest extends TransferItemRequest {
     StorageRequest.updateSettings();
   }
 
-  private static void updateSettings() {
+  static void updateSettings() {
     if (KoLConstants.storage.isEmpty()
         && KoLConstants.freepulls.isEmpty()
         && KoLCharacter.getStorageMeat() == 0) {

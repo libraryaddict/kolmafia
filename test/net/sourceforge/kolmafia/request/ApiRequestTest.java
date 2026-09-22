@@ -1,18 +1,22 @@
 package net.sourceforge.kolmafia.request;
 
+import static internal.helpers.Networking.assertPostRequest;
 import static internal.helpers.Networking.html;
 import static internal.helpers.Networking.json;
+import static internal.helpers.Player.withHttpClientBuilder;
 import static internal.helpers.Player.withPath;
 import static internal.helpers.Player.withProperty;
 import static internal.matchers.Preference.isSetTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.alibaba.fastjson2.JSONObject;
 import internal.helpers.Cleanups;
+import internal.network.FakeHttpClientBuilder;
 import net.sourceforge.kolmafia.AscensionPath;
 import net.sourceforge.kolmafia.KoLCharacter;
 import net.sourceforge.kolmafia.KoLConstants;
@@ -115,5 +119,19 @@ class ApiRequestTest {
     ApiRequest.parseResponse("api.php?what=inventory&for=KoLmafia", "{\"1\":\"3\"}");
 
     assertThat(KoLConstants.inventory, contains(ItemPool.get(ItemPool.SEAL_CLUB, 3)));
+  }
+
+  @Test
+  void refreshesSeveralThingsInOneRequest() {
+    var builder = new FakeHttpClientBuilder();
+
+    try (var cleanups = new Cleanups(withHttpClientBuilder(builder))) {
+      ApiRequest.refresh("inventory", "closet");
+
+      var requests = builder.client.getRequests();
+      assertThat(requests, hasSize(2));
+      assertPostRequest(requests.get(0), "/closet.php", "which=1");
+      assertPostRequest(requests.get(1), "/api.php", "what=inventory,closet&for=KoLmafia");
+    }
   }
 }

@@ -60,7 +60,6 @@ import net.sourceforge.kolmafia.request.CharSheetRequest;
 import net.sourceforge.kolmafia.request.ChateauRequest;
 import net.sourceforge.kolmafia.request.ClanLoungeRequest;
 import net.sourceforge.kolmafia.request.ClanRumpusRequest;
-import net.sourceforge.kolmafia.request.ClosetRequest;
 import net.sourceforge.kolmafia.request.CustomOutfitRequest;
 import net.sourceforge.kolmafia.request.EdBaseRequest;
 import net.sourceforge.kolmafia.request.EquipmentRequest;
@@ -782,11 +781,7 @@ public abstract class KoLmafia {
     // Hermit items depend on character class
     HermitRequest.initialize();
 
-    // Retrieve the contents of inventory.
-    InventoryManager.refresh();
-
-    // Retrieve the contents of the closet.
-    ClosetRequest.refresh();
+    ApiRequest.refresh("inventory", "closet");
 
     // Retrieve Custom Outfit list
     if (!KoLCharacter.getLimitMode().limitOutfits()) {
